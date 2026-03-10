@@ -9,26 +9,38 @@ function TaskForm({ fetchTasks, employees }) {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
-  const [assignedEmployeeEmail, setAssignedEmployeeEmail] = useState("");
+  const [assignedEmployeeEmails, setAssignedEmployeeEmails] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const toggleAssignedEmployee = (email) => {
+    setAssignedEmployeeEmails((currentEmails) =>
+      currentEmails.includes(email)
+        ? currentEmails.filter((currentEmail) => currentEmail !== email)
+        : [...currentEmails, email]
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !assignedEmployeeEmail) return;
+    if (!title.trim() || assignedEmployeeEmails.length === 0) return;
     setLoading(true);
     try {
-      await axios.post(buildApiUrl("/tasks"), {
-        title,
-        description,
-        priority,
-        dueDate: dueDate || null,
-        assignedEmployeeEmail,
-      });
+      await Promise.all(
+        assignedEmployeeEmails.map((assignedEmployeeEmail) =>
+          axios.post(buildApiUrl("/tasks"), {
+            title,
+            description,
+            priority,
+            dueDate: dueDate || null,
+            assignedEmployeeEmail,
+          })
+        )
+      );
       setTitle("");
       setDescription("");
       setPriority("medium");
       setDueDate("");
-      setAssignedEmployeeEmail("");
+      setAssignedEmployeeEmails([]);
       fetchTasks();
     } finally {
       setLoading(false);
@@ -91,18 +103,25 @@ function TaskForm({ fetchTasks, employees }) {
       <div style={styles.fieldGroup}>
         <label style={styles.label}>ASSIGN TO</label>
         <select
-          value={assignedEmployeeEmail}
-          onChange={(e) => setAssignedEmployeeEmail(e.target.value)}
+          value={assignedEmployeeEmails}
+          onChange={(e) =>
+            setAssignedEmployeeEmails(Array.from(e.target.selectedOptions, (option) => option.value))
+          }
           required
+          multiple
           style={styles.select}
         >
-          <option value="">Select an employee</option>
           {employees.map((employee) => (
             <option key={employee.email} value={employee.email}>
               {employee.name} ({employee.email})
             </option>
           ))}
         </select>
+        <div style={styles.selectionHint}>
+          {assignedEmployeeEmails.length === 0
+            ? "Select one or more employees"
+            : `${assignedEmployeeEmails.length} employee${assignedEmployeeEmails.length > 1 ? "s" : ""} selected`}
+        </div>
         <div style={styles.employeePanel}>
           <div style={styles.employeePanelHeader}>
             <span style={styles.employeePanelTitle}>Registered Employees</span>
@@ -114,12 +133,12 @@ function TaskForm({ fetchTasks, employees }) {
           ) : (
             <div style={styles.employeeList}>
               {employees.map((employee) => {
-                const selected = assignedEmployeeEmail === employee.email;
+                const selected = assignedEmployeeEmails.includes(employee.email);
                 return (
                   <button
                     key={employee.email}
                     type="button"
-                    onClick={() => setAssignedEmployeeEmail(employee.email)}
+                    onClick={() => toggleAssignedEmployee(employee.email)}
                     style={{
                       ...styles.employeeItem,
                       ...(selected ? styles.employeeItemActive : {}),
@@ -137,10 +156,10 @@ function TaskForm({ fetchTasks, employees }) {
 
       <button
         type="submit"
-        disabled={loading || !title.trim() || !assignedEmployeeEmail || employees.length === 0}
+        disabled={loading || !title.trim() || assignedEmployeeEmails.length === 0 || employees.length === 0}
         style={{
           ...styles.submitBtn,
-          ...(loading || !title.trim() || !assignedEmployeeEmail || employees.length === 0
+          ...(loading || !title.trim() || assignedEmployeeEmails.length === 0 || employees.length === 0
             ? styles.submitBtnDisabled
             : {}),
         }}
@@ -250,6 +269,12 @@ const styles = {
     fontSize: "0.82rem",
     outline: "none",
     boxSizing: "border-box",
+  },
+  selectionHint: {
+    marginTop: "8px",
+    fontFamily: "'DM Mono', 'Courier New', monospace",
+    fontSize: "0.65rem",
+    color: "var(--text-soft)",
   },
   employeePanel: {
     marginTop: "12px",
