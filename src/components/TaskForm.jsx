@@ -120,6 +120,7 @@ function TaskForm({ fetchTasks, employees }) {
           min-width: 140px;
         }
         .tf-date-trigger {
+          overflow: hidden;
           position: relative;
           cursor: pointer;
         }
@@ -129,7 +130,15 @@ function TaskForm({ fetchTasks, employees }) {
           width: 100%; height: 100%;
           opacity: 0;
           cursor: pointer;
-          z-index: 2;
+          z-index: 10;
+          inset: 0;
+          min-height: 100%;
+          margin: 0;
+          padding: 0;
+          border: none;
+          font-size: 16px;
+          -webkit-appearance: none;
+          appearance: none;
         }
         .tf-priority-row {
           display: flex;
@@ -563,7 +572,7 @@ const styles = {
     borderRadius: "4px",
     pointerEvents: "all",
     flexShrink: 0,
-    zIndex: 3,
+    zIndex: 20,
     position: "relative",
   },
 
