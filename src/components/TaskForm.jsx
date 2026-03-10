@@ -120,25 +120,7 @@ function TaskForm({ fetchTasks, employees }) {
           min-width: 140px;
         }
         .tf-date-trigger {
-          overflow: hidden;
-          position: relative;
           cursor: pointer;
-        }
-        .tf-date-trigger input[type="date"] {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          opacity: 0;
-          cursor: pointer;
-          z-index: 10;
-          inset: 0;
-          min-height: 100%;
-          margin: 0;
-          padding: 0;
-          border: none;
-          font-size: 16px;
-          -webkit-appearance: none;
-          appearance: none;
         }
         .tf-priority-row {
           display: flex;
@@ -235,60 +217,70 @@ function TaskForm({ fetchTasks, employees }) {
             </div>
           </div>
 
-          {/* Due Date — styled card trigger */}
+          {/* Due Date — label wraps entire card so any click opens picker */}
           <div className="tf-inline-field">
             <label style={styles.label}>DUE DATE</label>
-            <div className="tf-date-trigger" style={{
-              ...styles.dateTrigger,
-              borderColor: dueDate ? dueDateColor + "60" : "var(--border)",
-              background: dueDate ? dueDateColor + "08" : "var(--bg-input)",
-            }}>
-              {/* Hidden native date input */}
+            <label
+              htmlFor="tf-due-date"
+              style={{
+                ...styles.dateTrigger,
+                borderColor: dueDate ? dueDateColor + "60" : "var(--border)",
+                background:  dueDate ? dueDateColor + "08" : "var(--bg-input)",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              {/* Real date input — hidden but clickable via label */}
               <input
+                id="tf-due-date"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                style={styles.dateHiddenInput}
               />
 
-              {/* Visual display */}
-              <div style={styles.dateFace}>
-                {dueDate ? (
-                  <>
-                    {/* Calendar icon area */}
-                    <div style={{ ...styles.dateIconBox, background: dueDateColor + "20", color: dueDateColor }}>
-                      📅
-                    </div>
-                    <div style={styles.dateTextBlock}>
-                      <span style={{ ...styles.datePrimary, color: dueDateColor }}>
-                        {formatDisplayDate(dueDate)}
-                      </span>
-                      <span style={{ ...styles.dateSub, color: dueDateColor + "bb" }}>
-                        {daysLeft === 0
-                          ? "Due today"
-                          : daysLeft < 0
-                          ? `${Math.abs(daysLeft)}d overdue`
-                          : `${daysLeft}d left`}
-                      </span>
-                    </div>
-                    {/* Clear button */}
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); setDueDate(""); }}
-                      style={styles.dateClear}
-                      title="Clear date"
-                    >
-                      ✕
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div style={styles.dateIconBox}>📅</div>
-                    <span style={styles.datePlaceholder}>Pick a due date</span>
-                    <span style={styles.dateArrow}>›</span>
-                  </>
-                )}
+              {/* Calendar icon */}
+              <div style={{
+                ...styles.dateIconBox,
+                background: dueDate ? dueDateColor + "20" : "var(--bg-elevated)",
+                color:      dueDate ? dueDateColor        : "var(--text-faint)",
+              }}>
+                📅
               </div>
-            </div>
+
+              {/* Text content */}
+              {dueDate ? (
+                <div style={styles.dateTextBlock}>
+                  <span style={{ ...styles.datePrimary, color: dueDateColor }}>
+                    {formatDisplayDate(dueDate)}
+                  </span>
+                  <span style={{ ...styles.dateSub, color: dueDateColor + "bb" }}>
+                    {daysLeft === 0
+                      ? "Due today"
+                      : daysLeft < 0
+                      ? `${Math.abs(daysLeft)}d overdue`
+                      : `${daysLeft}d left`}
+                  </span>
+                </div>
+              ) : (
+                <span style={{ ...styles.datePlaceholder, flex: 1 }}>Pick a due date</span>
+              )}
+
+              {/* Right: clear or arrow */}
+              {dueDate ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDueDate(""); }}
+                  style={styles.dateClear}
+                  title="Clear date"
+                >
+                  ✕
+                </button>
+              ) : (
+                <span style={styles.dateArrow}>›</span>
+              )}
+            </label>
           </div>
         </div>
 
@@ -510,6 +502,14 @@ const styles = {
     transition: "all 0.2s",
     minHeight: "48px",
     boxSizing: "border-box",
+  },
+  dateHiddenInput: {
+    position: "absolute",
+    width: 0,
+    height: 0,
+    opacity: 0,
+    pointerEvents: "none",
+    overflow: "hidden",
   },
   dateFace: {
     display: "flex",
