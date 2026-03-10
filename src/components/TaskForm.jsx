@@ -229,9 +229,11 @@ function TaskForm({ fetchTasks, employees }) {
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
-              {/* Real date input — hidden but clickable via label */}
+              {/* Date input — covers full card, invisible but interactive */}
               <input
                 id="tf-due-date"
                 type="date"
@@ -240,7 +242,8 @@ function TaskForm({ fetchTasks, employees }) {
                 style={styles.dateHiddenInput}
               />
 
-              {/* Calendar icon */}
+              {/* Visual layer — sits above the invisible input */}
+              <div style={{ display:"flex", alignItems:"center", gap:"10px", flex:1, zIndex:2, pointerEvents:"none", minWidth:0 }}>
               <div style={{
                 ...styles.dateIconBox,
                 background: dueDate ? dueDateColor + "20" : "var(--bg-elevated)",
@@ -267,18 +270,19 @@ function TaskForm({ fetchTasks, employees }) {
                 <span style={{ ...styles.datePlaceholder, flex: 1 }}>Pick a due date</span>
               )}
 
-              {/* Right: clear or arrow */}
+              </div>{/* end visual layer */}
+              {/* Right: clear or arrow — above input */}
               {dueDate ? (
                 <button
                   type="button"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDueDate(""); }}
-                  style={styles.dateClear}
+                  style={{ ...styles.dateClear, position:"relative", zIndex:3 }}
                   title="Clear date"
                 >
                   ✕
                 </button>
               ) : (
-                <span style={styles.dateArrow}>›</span>
+                <span style={{ ...styles.dateArrow, position:"relative", zIndex:2 }}>›</span>
               )}
             </label>
           </div>
@@ -505,11 +509,14 @@ const styles = {
   },
   dateHiddenInput: {
     position: "absolute",
-    width: 0,
-    height: 0,
+    inset: 0,
+    width: "100%",
+    height: "100%",
     opacity: 0,
-    pointerEvents: "none",
-    overflow: "hidden",
+    cursor: "pointer",
+    zIndex: 1,
+    fontSize: "16px",       // prevents iOS zoom
+    boxSizing: "border-box",
   },
   dateFace: {
     display: "flex",
