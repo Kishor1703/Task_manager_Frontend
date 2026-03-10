@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import axios from "axios";
 import AuthPanel from "./components/AuthPanel.jsx";
 import TaskForm from "./components/TaskForm.jsx";
@@ -35,6 +36,16 @@ interface AuthUser {
 }
 
 const AUTH_STORAGE_KEY = "task-manager-auth";
+const THEME_STORAGE_KEY = "task-manager-theme";
+
+function getInitialTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme === "light" || savedTheme === "dark") {
+    return savedTheme;
+  }
+
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+}
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -43,6 +54,7 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [theme, setTheme] = useState(getInitialTheme);
 
   const clearSession = (message = "") => {
     localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -86,6 +98,11 @@ function App() {
     const res = await axios.get(buildApiUrl("/users/employees"));
     setEmployees(res.data);
   };
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     let cancelled = false;
@@ -171,27 +188,100 @@ function App() {
     clearSession("");
   };
 
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
+
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
+        :root {
+          color-scheme: dark;
+          --bg: #0f1117;
+          --bg-elevated: #1a1f2e;
+          --bg-soft: #141927;
+          --bg-input: #0f1117;
+          --bg-accent-soft: rgba(245,158,11,0.08);
+          --bg-accent-strong: linear-gradient(135deg, #f59e0b, #d97706);
+          --bg-page: radial-gradient(ellipse at 20% 10%, rgba(245,158,11,0.04) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 90%, rgba(99,102,241,0.04) 0%, transparent 50%);
+          --text: #e2e8f0;
+          --text-strong: #f8fafc;
+          --text-muted: #94a3b8;
+          --text-soft: #64748b;
+          --text-faint: #475569;
+          --text-placeholder: #334155;
+          --border: #2d3548;
+          --border-strong: #3d4a6a;
+          --border-accent: rgba(245,158,11,0.35);
+          --shadow: 0 4px 24px rgba(0,0,0,0.3);
+          --shadow-soft: 0 4px 16px rgba(0,0,0,0.25);
+          --accent: #f59e0b;
+          --accent-contrast: #0f1117;
+          --danger-bg: rgba(239,68,68,0.12);
+          --danger-border: rgba(239,68,68,0.28);
+          --danger-text: #fca5a5;
+          --empty-border: #2d3548;
+          --scroll-track: #0f1117;
+          --scroll-thumb: #2d3548;
+        }
+        :root[data-theme="light"] {
+          color-scheme: light;
+          --bg: #f3f4f6;
+          --bg-elevated: rgba(255,255,255,0.94);
+          --bg-soft: #f8fafc;
+          --bg-input: #ffffff;
+          --bg-accent-soft: rgba(245,158,11,0.12);
+          --bg-accent-strong: linear-gradient(135deg, #f59e0b, #ea580c);
+          --bg-page: radial-gradient(ellipse at 20% 10%, rgba(245,158,11,0.12) 0%, transparent 45%),
+            radial-gradient(ellipse at 80% 90%, rgba(59,130,246,0.12) 0%, transparent 40%);
+          --text: #0f172a;
+          --text-strong: #020617;
+          --text-muted: #334155;
+          --text-soft: #475569;
+          --text-faint: #64748b;
+          --text-placeholder: #94a3b8;
+          --border: #d7dee9;
+          --border-strong: #c4cfdd;
+          --border-accent: rgba(245,158,11,0.45);
+          --shadow: 0 18px 50px rgba(15,23,42,0.08);
+          --shadow-soft: 0 12px 30px rgba(15,23,42,0.08);
+          --accent: #c2410c;
+          --accent-contrast: #fff7ed;
+          --danger-bg: rgba(239,68,68,0.08);
+          --danger-border: rgba(239,68,68,0.2);
+          --danger-text: #b91c1c;
+          --empty-border: #cbd5e1;
+          --scroll-track: #e2e8f0;
+          --scroll-thumb: #94a3b8;
+        }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; width: 100%; }
         body {
-          background: #0f1117;
+          background: var(--bg);
           min-height: 100vh;
           font-family: 'DM Mono', 'Courier New', monospace;
+          color: var(--text);
+          transition: background-color 0.25s ease, color 0.25s ease;
         }
         #root { min-height: 100vh; width: 100%; }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f1117; }
-        ::-webkit-scrollbar-thumb { background: #2d3548; border-radius: 3px; }
-        input::placeholder, textarea::placeholder { color: #334155; }
-        input, select, textarea { transition: border-color 0.2s, box-shadow 0.2s; }
+        ::-webkit-scrollbar-track { background: var(--scroll-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
+        input::placeholder, textarea::placeholder { color: var(--text-placeholder); }
+        input, select, textarea, button {
+          transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s;
+        }
       `}</style>
 
       <div style={styles.page}>
         <div style={styles.shell}>
+          <div style={styles.utilityBar}>
+            <button type="button" onClick={toggleTheme} style={styles.themeToggle}>
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </button>
+          </div>
           {checkingSession ? (
             <div style={styles.loadingPanel}>Checking session...</div>
           ) : !authUser ? (
@@ -285,15 +375,12 @@ function App() {
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles: Record<string, CSSProperties> = {
   page: {
     width: "100%",
     minHeight: "100vh",
-    background: "#0f1117",
-    backgroundImage: `
-      radial-gradient(ellipse at 20% 10%, rgba(245,158,11,0.04) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 90%, rgba(99,102,241,0.04) 0%, transparent 50%)
-    `,
+    backgroundColor: "var(--bg)",
+    backgroundImage: "var(--bg-page)",
     padding: "60px 16px 80px",
   },
   shell: {
@@ -301,21 +388,39 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: "560px",
     margin: "0 auto",
   },
+  utilityBar: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: "18px",
+  },
+  themeToggle: {
+    background: "var(--bg-elevated)",
+    border: "1px solid var(--border)",
+    borderRadius: "999px",
+    color: "var(--text)",
+    fontFamily: "'DM Mono', 'Courier New', monospace",
+    fontSize: "0.72rem",
+    letterSpacing: "0.06em",
+    padding: "10px 14px",
+    cursor: "pointer",
+    boxShadow: "var(--shadow-soft)",
+  },
   loadingPanel: {
-    background: "#1a1f2e",
-    border: "1px solid #2d3548",
+    background: "var(--bg-elevated)",
+    border: "1px solid var(--border)",
     borderRadius: "16px",
     padding: "28px",
-    color: "#94a3b8",
+    color: "var(--text-muted)",
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.82rem",
     textAlign: "center",
+    boxShadow: "var(--shadow)",
   },
   authAlert: {
-    background: "rgba(239,68,68,0.12)",
-    border: "1px solid rgba(239,68,68,0.28)",
+    background: "var(--danger-bg)",
+    border: "1px solid var(--danger-border)",
     borderRadius: "12px",
-    color: "#fca5a5",
+    color: "var(--danger-text)",
     padding: "12px 14px",
     marginBottom: "16px",
     fontFamily: "'DM Mono', 'Courier New', monospace",
@@ -337,13 +442,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   logoBox: {
     width: "38px",
     height: "38px",
-    background: "linear-gradient(135deg, #f59e0b, #d97706)",
+    background: "var(--bg-accent-strong)",
     borderRadius: "10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: "0.8rem",
-    color: "#0f1117",
+    color: "var(--accent-contrast)",
     fontWeight: "700",
     flexShrink: 0,
     boxShadow: "0 4px 14px rgba(245,158,11,0.3)",
@@ -352,14 +457,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "1.1rem",
     fontWeight: "700",
-    color: "#e2e8f0",
+    color: "var(--text)",
     letterSpacing: "0.04em",
     lineHeight: 1.2,
   },
   appSub: {
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.65rem",
-    color: "#475569",
+    color: "var(--text-faint)",
     letterSpacing: "0.06em",
   },
   topBarMeta: {
@@ -375,13 +480,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "2px",
   },
   userName: {
-    color: "#e2e8f0",
+    color: "var(--text)",
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.8rem",
     fontWeight: "700",
   },
   userRole: {
-    color: "#f59e0b",
+    color: "var(--accent)",
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.62rem",
     textTransform: "uppercase",
@@ -389,9 +494,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   logoutButton: {
     background: "transparent",
-    border: "1px solid #2d3548",
+    border: "1px solid var(--border)",
     borderRadius: "10px",
-    color: "#cbd5e1",
+    color: "var(--text)",
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.75rem",
     padding: "10px 14px",
@@ -401,11 +506,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    background: "#1a1f2e",
-    border: "1px solid #2d3548",
+    background: "var(--bg-elevated)",
+    border: "1px solid var(--border)",
     borderRadius: "12px",
     padding: "8px 16px",
     marginBottom: "6px",
+    boxShadow: "var(--shadow-soft)",
   },
   statItem: {
     display: "flex",
@@ -417,24 +523,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "1rem",
     fontWeight: "700",
-    color: "#e2e8f0",
+    color: "var(--text)",
     lineHeight: 1,
   },
   statLabel: {
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.6rem",
-    color: "#475569",
+    color: "var(--text-faint)",
     letterSpacing: "0.08em",
     textTransform: "uppercase",
   },
   statDivider: {
     width: "1px",
     height: "24px",
-    background: "#2d3548",
+    background: "var(--border)",
   },
   progressTrack: {
     height: "3px",
-    background: "#1a1f2e",
+    background: "var(--bg-elevated)",
     borderRadius: "2px",
     overflow: "hidden",
     marginBottom: "28px",
@@ -450,29 +556,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: "24px",
   },
   searchPanel: {
-    background: "#1a1f2e",
-    border: "1px solid #2d3548",
+    background: "var(--bg-elevated)",
+    border: "1px solid var(--border)",
     borderRadius: "14px",
     padding: "16px",
     marginBottom: "24px",
+    boxShadow: "var(--shadow-soft)",
   },
   searchLabel: {
     display: "block",
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.65rem",
     fontWeight: "700",
-    color: "#64748b",
+    color: "var(--text-soft)",
     letterSpacing: "0.12em",
     textTransform: "uppercase",
     marginBottom: "8px",
   },
   searchInput: {
     width: "100%",
-    background: "#0f1117",
-    border: "1px solid #2d3548",
+    background: "var(--bg-input)",
+    border: "1px solid var(--border)",
     borderRadius: "10px",
     padding: "12px 14px",
-    color: "#e2e8f0",
+    color: "var(--text)",
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.88rem",
     outline: "none",
