@@ -12,14 +12,6 @@ function TaskForm({ fetchTasks, employees }) {
   const [assignedEmployeeEmails, setAssignedEmployeeEmails] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const toggleAssignedEmployee = (email) => {
-    setAssignedEmployeeEmails((currentEmails) =>
-      currentEmails.includes(email)
-        ? currentEmails.filter((currentEmail) => currentEmail !== email)
-        : [...currentEmails, email]
-    );
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim() || assignedEmployeeEmails.length === 0) return;
@@ -121,36 +113,6 @@ function TaskForm({ fetchTasks, employees }) {
           {assignedEmployeeEmails.length === 0
             ? "Select one or more employees"
             : `${assignedEmployeeEmails.length} employee${assignedEmployeeEmails.length > 1 ? "s" : ""} selected`}
-        </div>
-        <div style={styles.employeePanel}>
-          <div style={styles.employeePanelHeader}>
-            <span style={styles.employeePanelTitle}>Registered Employees</span>
-            <span style={styles.employeeCount}>{employees.length}</span>
-          </div>
-
-          {employees.length === 0 ? (
-            <p style={styles.emptyEmployees}>No employees registered yet.</p>
-          ) : (
-            <div style={styles.employeeList}>
-              {employees.map((employee) => {
-                const selected = assignedEmployeeEmails.includes(employee.email);
-                return (
-                  <button
-                    key={employee.email}
-                    type="button"
-                    onClick={() => toggleAssignedEmployee(employee.email)}
-                    style={{
-                      ...styles.employeeItem,
-                      ...(selected ? styles.employeeItemActive : {}),
-                    }}
-                  >
-                    <span style={styles.employeeName}>{employee.name}</span>
-                    <span style={styles.employeeEmail}>{employee.email}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
 
@@ -269,75 +231,13 @@ const styles = {
     fontSize: "0.82rem",
     outline: "none",
     boxSizing: "border-box",
+    minHeight: "132px",
   },
   selectionHint: {
     marginTop: "8px",
     fontFamily: "'DM Mono', 'Courier New', monospace",
     fontSize: "0.65rem",
     color: "var(--text-soft)",
-  },
-  employeePanel: {
-    marginTop: "12px",
-    border: "1px solid var(--border)",
-    borderRadius: "12px",
-    background: "var(--bg-input)",
-    padding: "12px",
-  },
-  employeePanelHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "10px",
-  },
-  employeePanelTitle: {
-    fontFamily: "'DM Mono', 'Courier New', monospace",
-    fontSize: "0.68rem",
-    fontWeight: "700",
-    color: "var(--text-muted)",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-  },
-  employeeCount: {
-    fontFamily: "'DM Mono', 'Courier New', monospace",
-    fontSize: "0.68rem",
-    color: "var(--accent)",
-  },
-  employeeList: {
-    display: "grid",
-    gap: "8px",
-    maxHeight: "180px",
-    overflowY: "auto",
-  },
-  employeeItem: {
-    width: "100%",
-    textAlign: "left",
-    background: "var(--bg-soft)",
-    border: "1px solid var(--border)",
-    borderRadius: "10px",
-    padding: "10px 12px",
-    display: "grid",
-    gap: "4px",
-  },
-  employeeItemActive: {
-    border: "1px solid var(--accent)",
-    background: "var(--bg-accent-soft)",
-  },
-  employeeName: {
-    fontFamily: "'DM Mono', 'Courier New', monospace",
-    fontSize: "0.76rem",
-    fontWeight: "700",
-    color: "var(--text)",
-  },
-  employeeEmail: {
-    fontFamily: "'DM Mono', 'Courier New', monospace",
-    fontSize: "0.65rem",
-    color: "var(--text-soft)",
-  },
-  emptyEmployees: {
-    fontFamily: "'DM Mono', 'Courier New', monospace",
-    fontSize: "0.72rem",
-    color: "var(--text-soft)",
-    margin: 0,
   },
   submitBtn: {
     width: "100%",
