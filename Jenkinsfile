@@ -6,7 +6,7 @@ pipeline{
     }
 
     environment{
-        VERCEL_TOCKEN = credentials 'VERCEL_TOCKEN'
+        VERCEL_TOKEN = credentials 'VERCEL_TOKEN'
     }
 
     stages{
@@ -31,7 +31,7 @@ pipeline{
 
         stage('Deploy to Vercel'){
             steps{
-                sh 'npx vercel --prod --token $VERCEL_TOCKEN'
+                sh 'npx vercel --prod --token $VERCEL_TOKEN'
             }
         }
     }
