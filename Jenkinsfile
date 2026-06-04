@@ -31,7 +31,7 @@ pipeline{
 
         stage('Deploy to Vercel'){
             steps{
-                sh 'npx vercel --prod --token $VERCEL_TOKEN'
+                sh 'npx vercel --prod --yes --token $VERCEL_TOKEN'
             }
         }
     }
